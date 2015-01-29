@@ -15,21 +15,5 @@
                 </xpath>
             </field>
         </record>
-        <record id="invoice_form_inherit" model="ir.ui.view">
-            <field name="name">account.invoice.form (account_invoice_edit_tax_base)</field>
-            <field name="model">account.invoice</field>
-            <field name="inherit_id" ref="account.invoice_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='tax_line']" position="before">
-                    <div name="disable_taxes_check_div">
-                        <label for="disable_taxes_check" />
-                        <field name="disable_taxes_check"/>
-                    </div>
-                </xpath>
-                <xpath expr="//field[@name='tax_line']//tree//field[@name='base']" position="attributes">
-                    <attribute name="readonly">0</attribute>
-                </xpath>
-            </field>
-        </record>
     </data>
 </openerp>
