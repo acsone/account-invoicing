@@ -2,7 +2,7 @@
 <openerp>
     <data>
         <record id="invoice_supplier_form_inherit" model="ir.ui.view">
-            <field name="name">account.invoice.supplier.form (account_invoice_edit_tax_base)</field>
+            <field name="name">account.invoice.supplier.form (account_invoice_manual_tax)</field>
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_supplier_form"/>
             <field name="arch" type="xml">
