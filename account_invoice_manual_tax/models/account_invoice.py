@@ -20,7 +20,7 @@
 #
 ##############################################################################
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 
 
 class account_invoice(models.Model):
@@ -36,3 +36,46 @@ class account_invoice(models.Model):
     def check_tax_lines(self, compute_taxes):
         if not self.disable_taxes_check:
             super(account_invoice, self).check_tax_lines(compute_taxes)
+
+    @api.multi
+    def action_move_create(self):
+        """ Adapt the created move in case of modification of base's column
+            on account invoice tax lines"""
+        res = super(account_invoice, self).action_move_create()
+        aml_obj = self.env['account.move.line']
+        for invoice in self:
+            if invoice.disable_taxes_check:
+                compare = {}
+                tax_code_account_mapping = {}
+                if invoice.move_id.id:
+                    for line in invoice.tax_line:
+                        if line.base_code_id.id and line.account_id.id:
+                            key = line.base_code_id.id
+                            if compare.get(key, False):
+                                compare[key] += line.base
+                            else:
+                                compare[key] = line.base
+                    for line in invoice.move_id.line_id:
+                        key = line.tax_code_id.id
+                        if compare.get(key, False):
+                            # Here, we get difference between tax lines and
+                            # move lines
+                            compare[key] -= line.tax_amount
+                            if not tax_code_account_mapping.get(key, False):
+                                tax_code_account_mapping[key] = \
+                                    line.account_id.id
+                    for tax_code_id, amount in compare.iteritems():
+                        if amount != 0.0:
+                            aml_data = {
+                                'type': 'tax',
+                                'name': _('Tax Adjustment'),
+                                'credit': 0.0,
+                                'account_id':
+                                    tax_code_account_mapping[tax_code_id],
+                                'tax_code_id': tax_code_id,
+                                'tax_amount': amount,
+                                'move_id': invoice.move_id.id,
+                            }
+                            aml_obj.with_context(from_parent_object=True)\
+                                .create(aml_data)
+        return res
