@@ -26,4 +26,4 @@ class TestAccountInvoice(TransactionCase):
                 'partner_id': self.env.ref('base.res_partner_2').id,
                 'account_id': invoice_account,
                 'type': 'in_invoice',
-                'check_total': 1})
+                'check_total': 1}).action_move_create()
