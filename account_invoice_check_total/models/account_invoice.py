@@ -4,6 +4,7 @@
 
 from openerp import api, fields, models, _
 from openerp.exceptions import UserError
+from openerp.tools.float_utils import float_compare
 
 
 class AccountInvoice(models.Model):
@@ -13,15 +14,18 @@ class AccountInvoice(models.Model):
     check_total = fields.Monetary(
         string='Verification Total',
         readonly=True,
-        states={'draft': [('readonly', False)]},
-        default=0.0)
+        states={'draft': [('readonly', False)]})
 
     @api.multi
     def action_move_create(self):
         for inv in self:
+            print(inv.check_total)
+            print(inv.amount_total)
             if inv.type in ('in_invoice', 'in_refund') and\
-                    abs(inv.check_total - inv.amount_total)\
-                    >= (inv.currency_id.rounding / 2.0):
+                float_compare(
+                    inv.check_total,
+                    inv.amount_total,
+                    precision_rounding=inv.currency_id.rounding) != 0:
                 raise UserError(_(
                     'Please verify the price of the invoice!\n\
                     The encoded total does not match the computed total.'))
