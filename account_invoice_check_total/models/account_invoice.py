@@ -19,8 +19,6 @@ class AccountInvoice(models.Model):
     @api.multi
     def action_move_create(self):
         for inv in self:
-            print(inv.check_total)
-            print(inv.amount_total)
             if inv.type in ('in_invoice', 'in_refund') and\
                 float_compare(
                     inv.check_total,
