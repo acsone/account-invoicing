@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-# © 2010-2011 Elico Corp. All Rights Reserved.
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# Copyright 2004-2010 Tiny SPRL (http://tiny.be).
+# Copyright 2010-2011 Elico Corp.
+# Copyright 2016 Acsone (https://www.acsone.eu/)
+# Copyright 2017 Eficent Business and IT Consulting Services S.L.
+#   (http://www.eficent.com)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from openerp import models, fields, api, exceptions
-from openerp.tools.translate import _
+from odoo import api, exceptions, fields, models
+from odoo.tools.translate import _
 
 
 class InvoiceMerge(models.TransientModel):
