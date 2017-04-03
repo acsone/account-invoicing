@@ -67,7 +67,10 @@ class TestAccountInvoiceMergePurchase(SavepointCase):
             'account_id': self.partner.property_account_payable_id.id,
         })
         self.invoice01.purchase_order_change()
-
+        self.assertEqual(
+            self.purchase_order.order_line.mapped('qty_invoiced'),
+            [7.0],
+            'Purchase: all products should be invoiced"')
         # I create the second purchase order
         self.purchase_order02 = self.purchase_order.copy()
         # I confirm the second purchase order
@@ -96,17 +99,20 @@ class TestAccountInvoiceMergePurchase(SavepointCase):
             'account_id': self.partner.property_account_payable_id.id,
         })
         self.invoice02.purchase_order_change()
+        self.assertEqual(
+            self.purchase_order.order_line.mapped('qty_invoiced'),
+            [7.0],
+            'Purchase: all products should be invoiced"')
         invoices = self.invoice01 + self.invoice02
         invoices_info = invoices.do_merge()
         new_invoice_ids = invoices_info.keys()
         # Ensure there is only one new invoice
         self.assertEqual(len(new_invoice_ids), 1)
-        # I pay the merged invoice
-        invoice = self.invoice_model.browse(new_invoice_ids)[0]
-        # I validate invoice by creating on
-        invoice.signal_workflow('invoice_open')
-        invoice.pay_and_reconcile(
-            self.env['account.journal'].search([('type', '=', 'bank')],
-                                               limit=1), 7000.0)
-        # I check if merge invoice is paid
-        self.assertEqual(invoice.state, 'paid')
+        self.assertEqual(
+            self.purchase_order.order_line.mapped('qty_invoiced'),
+            [7.0],
+            'Purchase: all products should be invoiced"')
+        self.assertEqual(
+            self.purchase_order02.order_line.mapped('qty_invoiced'),
+            [7.0],
+            'Purchase: all products should be invoiced"')
