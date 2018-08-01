@@ -8,6 +8,5 @@ class AccountTaxGroup(models.Model):
 
     report_note = fields.Text(
         translate=True,
-        company_dependent=True,
         help="Note to insert on Invoice Report if the tax group is used.",
     )
