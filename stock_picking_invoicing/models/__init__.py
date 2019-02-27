@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-# © 2016 <OCA>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-
-from . import stock
+# Copyright (C) 2019-Today: Odoo Community Association (OCA)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+from . import stock_invoice_state_mixin
 from . import account_invoice
+from . import procurement_order
+from . import procurement_rule
+from . import stock_location_path
+from . import stock_move
+from . import stock_picking
