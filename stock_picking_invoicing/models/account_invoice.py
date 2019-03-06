@@ -17,22 +17,6 @@ class AccountInvoice(models.Model):
     )
 
     @api.multi
-    def _force_compute_invoice_tax_lines(self):
-        """
-        Force create new invoice taxes for current invoice
-        :return: account.invoice.tax recordset
-        """
-        tax_created = self.env['account.invoice.tax'].browse()
-        for record in self:
-            taxes_grouped = record.get_taxes_values()
-            tax_lines = record.tax_line_ids.browse()
-            for tax in taxes_grouped.values():
-                tax_lines += tax_lines.new(tax)
-            record.tax_line_ids = tax_lines
-            tax_created |= tax_lines
-        return tax_created
-
-    @api.multi
     def action_cancel(self):
         """
         Inherit to update related picking as '2binvoiced' when the invoice is
@@ -43,6 +27,7 @@ class AccountInvoice(models.Model):
         pickings = self.filtered(
             lambda i: i.picking_ids and
             i.type in ['out_invoice', 'in_invoice']).mapped("picking_ids")
+        self.mapped("invoice_line_ids.stock_move_ids")._set_as_2binvoiced()
         pickings._set_as_2binvoiced()
         return result
 
@@ -56,6 +41,7 @@ class AccountInvoice(models.Model):
         pickings = self.filtered(
             lambda i: i.picking_ids and
             i.type in ['out_invoice', 'in_invoice']).mapped("picking_ids")
+        self.mapped("invoice_line_ids.stock_move_ids")._set_as_2binvoiced()
         pickings._set_as_2binvoiced()
         return super(AccountInvoice, self).unlink()
 
