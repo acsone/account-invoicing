@@ -21,13 +21,14 @@ class StockInvoiceStateMixin(models.AbstractModel):
         help="Invoiced: an invoice already exists\n"
              "To Be Invoiced: need to be invoiced\n"
              "Not Applicable: no invoice to create",
+        copy=False,
     )
 
     @api.multi
     def _set_as_invoiced(self):
         """
         Update invoice_state on current recordset to 'invoiced'
-        :return: bool
+        :return: self recordset (where the updated has been executed)
         """
         return self._update_invoice_state('invoiced')
 
@@ -35,16 +36,24 @@ class StockInvoiceStateMixin(models.AbstractModel):
     def _set_as_2binvoiced(self):
         """
         Update invoice_state on current recordset to '2binvoiced'
-        :return: bool
+        :return: self recordset (where the updated has been executed)
         """
         return self._update_invoice_state('2binvoiced')
+
+    @api.multi
+    def _set_as_not_billable(self):
+        """
+        Update invoice_state on current recordset to 'invoiced'
+        :return: self recordset (where the updated has been executed)
+        """
+        return self._update_invoice_state('none')
 
     @api.multi
     def _update_invoice_state(self, invoice_state):
         """
         Execute the write
         :param invoice_state: str
-        :return: self recordset
+        :return: self recordset (where the updated has been executed)
         """
         records = self.filtered(lambda r: r.invoice_state != invoice_state)
         if records:

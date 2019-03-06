@@ -14,8 +14,6 @@
     ],
     "data": [
         "wizards/stock_invoice_onshipping_view.xml",
-        "views/procurement_rule.xml",
-        "views/stock_location_path.xml",
         "views/stock_move.xml",
         "views/stock_picking.xml",
     ],

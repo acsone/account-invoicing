@@ -3,8 +3,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 from . import stock_invoice_state_mixin
 from . import account_invoice
-from . import procurement_order
-from . import procurement_rule
-from . import stock_location_path
+from . import account_invoice_line
 from . import stock_move
 from . import stock_picking

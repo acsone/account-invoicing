@@ -13,7 +13,7 @@ def pre_init_hook(cr):
     :param cr: database cursor
     :return:
     """
-    _logger.info("Remove previous views who doesn't exist anymore "
+    _logger.info("Remove previous views which doesn't exist anymore "
                  "in this version")
     main_query = """
     SELECT res_id
