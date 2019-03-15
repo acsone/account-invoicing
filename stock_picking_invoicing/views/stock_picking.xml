@@ -34,6 +34,7 @@
                             <tree>
                                 <field name="partner_id"/>
                                 <field name="name"/>
+                                <field name="number"/>
                                 <field name="date_invoice"/>
                                 <field name="state"/>
                                 <field name="amount_untaxed" sum="True"/>
