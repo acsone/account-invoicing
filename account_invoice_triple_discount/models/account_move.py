@@ -17,18 +17,13 @@ class AccountMove(models.Model):
         """
         old_values_by_line_id = {}
         for line in self.line_ids:
-            aggregated_discount = line._compute_aggregated_discount(
-                line.discount
-            )
+            aggregated_discount = line._compute_aggregated_discount(line.discount)
             old_values_by_line_id[line.id] = {
-                'price_unit': line.price_unit,
-                'discount': line.discount,
+                "price_unit": line.price_unit,
+                "discount": line.discount,
             }
             price_unit = line.price_unit * (1 - aggregated_discount / 100)
-            line.update({
-                'price_unit': price_unit,
-                'discount': 0,
-            })
+            line.update({"price_unit": price_unit, "discount": 0})
         res = super(AccountMove, self)._recompute_tax_lines(**kwargs)
         for line in self.line_ids:
             if line.id not in old_values_by_line_id:

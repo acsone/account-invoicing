@@ -6,46 +6,42 @@ from odoo.tests.common import Form
 
 
 class TestInvoiceTripleDiscount(SavepointCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestInvoiceTripleDiscount, cls).setUpClass()
-        cls.Account = cls.env['account.account']
-        cls.AccountMove = cls.env['account.move']
-        cls.AccountTax = cls.env['account.tax']
-        cls.AccountType = cls.env['account.account.type']
-        cls.Partner = cls.env['res.partner']
-        cls.Journal = cls.env['account.journal']
+        cls.Account = cls.env["account.account"]
+        cls.AccountMove = cls.env["account.move"]
+        cls.AccountTax = cls.env["account.tax"]
+        cls.AccountType = cls.env["account.account.type"]
+        cls.Partner = cls.env["res.partner"]
+        cls.Journal = cls.env["account.journal"]
 
-        cls.partner = cls.Partner.create({
-            'name': 'test',
-        })
-        cls.tax = cls.AccountTax.create({
-            'name': 'TAX 15%',
-            'amount_type': 'percent',
-            'type_tax_use': 'purchase',
-            'amount': 15.0,
-        })
-        cls.account_type = cls.AccountType.create({
-            'name': 'Test',
-            'type': 'receivable',
-            'internal_group': 'income',
-        })
-        cls.account = cls.Account.create({
-            'name': 'Test account',
-            'code': 'TEST',
-            'user_type_id': cls.account_type.id,
-            'reconcile': True,
-        })
-        cls.sale_journal = cls.Journal.search([
-            ('type', '=', 'sale'),
-        ], limit=1)
+        cls.partner = cls.Partner.create({"name": "test"})
+        cls.tax = cls.AccountTax.create(
+            {
+                "name": "TAX 15%",
+                "amount_type": "percent",
+                "type_tax_use": "purchase",
+                "amount": 15.0,
+            }
+        )
+        cls.account_type = cls.AccountType.create(
+            {"name": "Test", "type": "receivable", "internal_group": "income"}
+        )
+        cls.account = cls.Account.create(
+            {
+                "name": "Test account",
+                "code": "TEST",
+                "user_type_id": cls.account_type.id,
+                "reconcile": True,
+            }
+        )
+        cls.sale_journal = cls.Journal.search([("type", "=", "sale")], limit=1)
 
     def create_simple_invoice(self, amount):
         invoice_form = Form(
             self.AccountMove.with_context(
-                default_type="out_invoice",
-                default_journal_id=self.sale_journal.id,
+                default_type="out_invoice", default_journal_id=self.sale_journal.id,
             )
         )
         invoice_form.partner_id = self.partner
