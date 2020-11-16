@@ -7,7 +7,7 @@
             <field name="ref" position="before">
                 <field
                     name="supplier_invoice_number"
-                    attrs="{'invisible': [('type', 'in', ['out_invoice', 'out_refund'])]}"
+                    attrs="{'invisible': [('type', 'not in', ['in_invoice', 'in_refund'])]}"
                 />
             </field>
         </field>
