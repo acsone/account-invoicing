@@ -14,11 +14,22 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     @api.model
-    def _get_invoice_key_cols(self):
+    def _get_invoice_key_cols_out(self):
         return [
             "partner_id",
             "user_id",
-            "type",
+            "move_type",
+            "currency_id",
+            "journal_id",
+            "company_id",
+            "bank_partner_id",
+        ]
+
+    @api.model
+    def _get_invoice_key_cols_in(self):
+        return [
+            "partner_id",
+            "move_type",
             "currency_id",
             "journal_id",
             "company_id",
@@ -51,7 +62,7 @@ class AccountMove(models.Model):
             "user_id": invoice.user_id.id,
             "currency_id": invoice.currency_id.id,
             "company_id": invoice.company_id.id,
-            "type": invoice.type,
+            "move_type": invoice.move_type,
             # "account_id": invoice.account_id.id,
             "state": "draft",
             "ref": invoice.ref or "",
@@ -76,7 +87,7 @@ class AccountMove(models.Model):
         * Account invoices are in draft
         * Account invoices belong to the same partner
         * Account invoices are have same company, partner, address, currency,
-          journal, currency, salesman, account, type
+          journal, currency, salesman, account, move_type
         Lines will only be merged if:
         * Invoice lines are exactly the same except for the quantity and unit
 
@@ -106,7 +117,12 @@ class AccountMove(models.Model):
         seen_client_refs = {}
 
         for account_invoice in self._get_draft_invoices():
-            invoice_key = make_key(account_invoice, self._get_invoice_key_cols())
+            if account_invoice.move_type in ("in_invoice", "in_refund"):
+                invoice_key = make_key(account_invoice, self._get_invoice_key_cols_in())
+            else:
+                invoice_key = make_key(
+                    account_invoice, self._get_invoice_key_cols_out()
+                )
             new_invoice = new_invoices.setdefault(invoice_key, ({}, []))
             origins = seen_origins.setdefault(invoice_key, set())
             client_refs = seen_client_refs.setdefault(invoice_key, set())
