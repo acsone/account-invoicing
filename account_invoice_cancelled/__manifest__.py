@@ -8,6 +8,6 @@
     "website": "https://github.com/OCA/account-invoicing",
     "author": "Acsone, Odoo Community Association (OCA)",
     "installable": True,
-    "depends": ["account","account_invoice_refund_link"],
+    "depends": ["account", "account_invoice_refund_link"],
     "license": "AGPL-3",
 }
