@@ -20,18 +20,18 @@
 <p>You have some purchase invoices to validate:</p>
 <t t-set="invoice_ids" t-value="ctx.get('reminder_account_invoice_ids')"/>
 <t t-if="invoice_ids">
+    <p>
+      <a
+  t-att-href="'/web#action=account_invoice_validation.account_move_act_window'"
+  style="background-color: #9E588B; margin-top: 10px; padding: 10px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 16px;"
+>
+          View Invoices
+      </a>
+    </p>
     <ul>
         <li t-as="invoice" t-foreach= "object.env['account.move'].browse(invoice_ids)" class="list-group-item form-group clearfix active">
             <div t-attf-style="display: inline-block; border-radius: 50%; width: 10px; height: 10px;};"> </div>
                 <span style="margin-left:5px" t-out="invoice.name"></span>
-                 <p>
-                    <a
-                t-att-href="'/mail/view?model=%s&amp;res_id=%s' % (invoice._name, invoice.id)"
-                style="background-color: #9E588B; margin-top: 10px; padding: 10px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 16px;"
-              >
-                        View Invoice
-                    </a>
-                  </p>
         </li>
     </ul>
 </t>
