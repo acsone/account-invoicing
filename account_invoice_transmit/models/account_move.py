@@ -23,6 +23,9 @@ class AccountMove(models.Model):
 
     def _get_transmit_invoice_by_email_template(self):
         """Return email template used in mass sending"""
+        self.ensure_one()
+        if self.move_type == "out_refund":
+            return self.env.ref("account.email_template_edi_credit_note")
         return self.env.ref("account.email_template_edi_invoice")
 
     def _transmit_invoice(self, method):
