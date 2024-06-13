@@ -14,6 +14,11 @@ class StockPicking(models.Model):
     )
 
     def _invoice_at_shipping(self):
+        """
+        This will take this picking into account for invoice creation (at shipping)
+        when sale order has Cash On Delivery set and even if the partner is not
+        using that mode (at shipping).
+        """
         self.ensure_one()
         res = super()._invoice_at_shipping()
         res = res or self.sale_id.payment_mode_id.cash_on_delivery
