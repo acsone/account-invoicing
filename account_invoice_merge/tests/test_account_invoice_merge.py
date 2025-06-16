@@ -17,9 +17,9 @@ class TestAccountInvoiceMerge(AccountTestInvoicingCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.company_data["company"]
-        cls.company2 = cls.env.company.search(
-            [("id", "!=", cls.env.company.id)], limit=1
-        )
+        cls.company_data2 = cls.setup_other_company()
+        cls.company2 = cls.company_data2['company']
+
         companies = cls.company | cls.company2
         cls.env.user.write(
             {
