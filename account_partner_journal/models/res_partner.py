@@ -1,22 +1,5 @@
-##############################################################################
-#
-#    Copyright (C) 2016-Today: La Louve (<http://www.lalouve.net/>)
-#    @author Julien WESTE
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# Copyright 2016-Today: La Louve (<http://www.lalouve.net/>)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models
 
@@ -27,12 +10,20 @@ class ResPartner(models.Model):
     default_purchase_journal_id = fields.Many2one(
         "account.journal",
         "Default Purchase Journal",
+        compute="_compute_purchase_journal_id",
+        readonly=False,
+        store=True,
+        company_dependent=True,
+        recursive=True,
         domain="[('type', '=', 'purchase')]",
     )
 
-    @api.onchange("parent_id")
-    def _onchange_parent_id(self):
-        if self.parent_id.default_purchase_journal_id:
-            self.default_purchase_journal_id = (
-                self.parent_id.default_purchase_journal_id
-            )
+    @api.depends("parent_id.default_purchase_journal_id")
+    def _compute_purchase_journal_id(self):
+        for partner in self:
+            if partner.parent_id.default_purchase_journal_id:
+                partner.default_purchase_journal_id = (
+                    partner.parent_id.default_purchase_journal_id
+                )
+            else:
+                partner.default_purchase_journal_id = False

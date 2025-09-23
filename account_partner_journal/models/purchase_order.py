@@ -1,28 +1,11 @@
-from odoo import api, models
+from odoo import models
 
 
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
-    @api.multi
-    def action_view_invoice(self):
-        """
-        Override method to set default invoice journal as supplier
-        journal
-        """
-        result = super().action_view_invoice()
-
-        # Use the default Purchase Journal set in Partner for Invoice Journal
-        default_journal = (
-            self.partner_id
-            and self.partner_id
-            and self.partner_id.default_purchase_journal_id
-            or False
-        )
-
-        if default_journal:
-            if result.get("context"):
-                result["context"]["default_journal_id"] = default_journal.id
-            else:
-                result["context"] = {"default_journal_id": default_journal.id}
-        return result
+    def _prepare_invoice(self):
+        invoice_vals = super()._prepare_invoice()
+        if self.partner_id.default_purchase_journal_id:
+            invoice_vals["journal_id"] = self.partner_id.default_purchase_journal_id.id
+        return invoice_vals

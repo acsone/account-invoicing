@@ -12,22 +12,10 @@ class TestDefaultPurchaseJournal(DefaultPurchaseJournalTest):
         whatever configured in default_purchase_journal_id of vendors.
         """
         # Should be changed by automatic on_change later
-        invoice_account = self.AccountAccount.search(
-            [
-                (
-                    "user_type_id",
-                    "=",
-                    self.env.ref("account.data_account_type_payable").id,
-                )
-            ],
-            limit=1,
-        ).id
-
         invoice = self.AccountInvoice.create(
             {
                 "partner_id": self.supplier_id.id,
-                "account_id": invoice_account,
-                "type": "in_invoice",
+                "move_type": "in_invoice",
             }
         )
 
@@ -66,11 +54,11 @@ class TestDefaultPurchaseJournal(DefaultPurchaseJournalTest):
             {
                 "partner_id": self.supplier_id.id,
                 "purchase_id": self.po.id,
-                "account_id": self.supplier_id.property_account_payable_id.id,
-                "type": "in_invoice",
+                # "account_id": self.supplier_id.property_account_payable_id.id,
+                "move_type": "in_invoice",
             }
         )
-        self.invoice.purchase_order_change()
+        self.invoice._onchange_purchase_auto_complete()
         self.invoice._onchange_partner_id()
 
         self.assertEqual(self.invoice.journal_id.id, self.purchase_journal.id)

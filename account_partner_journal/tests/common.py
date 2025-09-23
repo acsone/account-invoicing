@@ -8,7 +8,7 @@ class DefaultPurchaseJournalTest(common.TransactionCase):
         super().setUp()
         # Useful models
         self.PurchaseOrder = self.env["purchase.order"]
-        self.AccountInvoice = self.env["account.invoice"]
+        self.AccountInvoice = self.env["account.move"]
         self.AccountAccount = self.env["account.account"]
         self.supplier_id = self.env.ref("base.res_partner_3")
         self.product_id_1 = self.env.ref("product.product_product_8")
