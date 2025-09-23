@@ -18,17 +18,21 @@
 #
 ##############################################################################
 
-from odoo import models, fields, api
+from odoo import api, fields, models
 
 
 class ResPartner(models.Model):
-    _inherit = 'res.partner'
+    _inherit = "res.partner"
 
     default_purchase_journal_id = fields.Many2one(
-        'account.journal', 'Default Purchase Journal',
-        domain="[('type', '=', 'purchase')]")
+        "account.journal",
+        "Default Purchase Journal",
+        domain="[('type', '=', 'purchase')]",
+    )
 
-    @api.onchange('parent_id')
+    @api.onchange("parent_id")
     def _onchange_parent_id(self):
         if self.parent_id.default_purchase_journal_id:
-            self.default_purchase_journal_id = self.parent_id.default_purchase_journal_id
+            self.default_purchase_journal_id = (
+                self.parent_id.default_purchase_journal_id
+            )

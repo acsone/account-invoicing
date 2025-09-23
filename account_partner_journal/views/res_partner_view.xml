@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <!-- ********************************************************************** -->
 <!-- See __manifest__.py file for Copyright and Licence Informations. -->
 <!-- ********************************************************************** -->
@@ -11,9 +11,11 @@
         <field name="groups_id" eval="[(4, ref('account.group_account_manager'))]" />
         <field name="arch" type="xml">
             <field name="property_account_payable_id" position="after">
-                <field name="default_purchase_journal_id"
+                <field
+                    name="default_purchase_journal_id"
                     attrs="{'required': [('supplier', '=', True)], 'invisible': [('supplier', '=', False)]}"
-                    context="{'default_type': 'purchase'}" />
+                    context="{'default_type': 'purchase'}"
+                />
             </field>
         </field>
     </record>

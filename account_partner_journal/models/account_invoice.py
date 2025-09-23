@@ -22,10 +22,10 @@ from odoo import api, models
 
 
 class AccountInvoice(models.Model):
-    _inherit = 'account.invoice'
+    _inherit = "account.invoice"
 
-    @api.onchange('partner_id', 'company_id')
+    @api.onchange("partner_id", "company_id")
     def _onchange_partner_id(self):
-        super(AccountInvoice, self)._onchange_partner_id()
+        super()._onchange_partner_id()
         if self.partner_id and self.partner_id.default_purchase_journal_id:
             self.journal_id = self.partner_id.default_purchase_journal_id
