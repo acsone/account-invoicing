@@ -15,6 +15,19 @@ class AccountMove(models.Model):
         readonly=False,
         store=True,
     )
+    is_approver_id_readonly = fields.Boolean(
+        compute="_compute_is_approver_id_readonly",
+        help="technical field to allow complex readonly attribute "
+        "logic for the approver_id field on the views",
+    )
+
+    def _compute_is_approver_id_readonly(self):
+        is_account_manager = self.env.user.has_group("account.group_account_manager")
+        for record in self:
+            if is_account_manager and not record.review_ids:
+                record.is_approver_id_readonly = False
+            else:
+                record.is_approver_id_readonly = True
 
     @api.depends("partner_id")
     def _compute_approver_id(self):
