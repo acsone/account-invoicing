@@ -20,18 +20,24 @@ class AccountMove(models.Model):
 
         # Copy data from PO
         purchase = self.autocomplete_purchase_picking_id.purchase_id
-        stock_moves = self.autocomplete_purchase_picking_id.move_lines
+        stock_moves = self.autocomplete_purchase_picking_id.move_ids
         invoice_vals = purchase.with_company(purchase.company_id)._prepare_invoice()
         invoice_vals["currency_id"] = (
-            self.line_ids and self.currency_id or invoice_vals.get("currency_id")
+            self.invoice_line_ids
+            and self.currency_id
+            or invoice_vals.get("currency_id")
         )
         del invoice_vals["ref"]
         self.update(invoice_vals)
 
         # Copy purchase lines.
-        stock_moves -= self.line_ids.mapped("stock_move_invoiced_id")
+        stock_moves -= self.invoice_line_ids.mapped("stock_move_invoiced_id")
         new_lines = self.env["account.move.line"]
-        sequence = max(self.line_ids.mapped("sequence")) + 1 if self.line_ids else 10
+        sequence = (
+            max(self.invoice_line_ids.mapped("sequence")) + 1
+            if self.invoice_line_ids
+            else 10
+        )
         precision = self.env["decimal.precision"].precision_get(
             "Product Unit of Measure"
         )
@@ -43,14 +49,12 @@ class AccountMove(models.Model):
             line_vals = stock_move._prepare_account_move_line_from_stock(self, sequence)
             new_line = new_lines.new(line_vals)
             sequence += 1
-            new_line.account_id = new_line._get_computed_account()
-            new_line._onchange_price_subtotal()
+            self.invoice_line_ids += new_line
+            new_line._compute_account_id()
             new_lines += new_line
-        new_lines._onchange_mark_recompute_taxes()
         new_lines.picking_invoiced_id = self.autocomplete_purchase_picking_id
-
         # Compute invoice_origin.
-        origins = set(self.line_ids.mapped("purchase_line_id.order_id.name"))
+        origins = set(self.invoice_line_ids.mapped("purchase_line_id.order_id.name"))
         self.invoice_origin = ",".join(list(origins))
 
         # Compute ref.
@@ -63,7 +67,6 @@ class AccountMove(models.Model):
 
         self.autocomplete_purchase_picking_id = False
         self.purchase_id = False
-        self._onchange_currency()
 
 
 class AccountMoveLine(models.Model):

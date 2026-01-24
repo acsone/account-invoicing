@@ -1,5 +1,4 @@
-from odoo.tests import tagged
-from odoo.tests.common import Form
+from odoo.tests import Form, tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -15,14 +14,14 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
     """
 
     @classmethod
-    def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass(chart_template_ref=chart_template_ref)
+    def setUpClass(cls):
+        super().setUpClass()
         cls.product_1 = cls.env["product.product"].create(
             {
                 "name": "product_1",
                 "standard_price": 100,
                 "list_price": 150,
-                "type": "product",
+                "type": "consu",
                 "purchase_method": "receive",
             }
         )
@@ -31,7 +30,7 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
                 "name": "product_2",
                 "standard_price": 200,
                 "list_price": 300,
-                "type": "product",
+                "type": "consu",
                 "purchase_method": "receive",
             }
         )
@@ -73,11 +72,11 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         )
         self.purchase_order.button_confirm()
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        picking.move_line_ids.filtered(lambda x: x.product_id == self.product_1).write(
-            {"qty_done": 10}
+        picking.move_ids.filtered(lambda x: x.product_id == self.product_1).write(
+            {"quantity": 10, "picked": True}
         )
-        picking.move_line_ids.filtered(lambda x: x.product_id == self.product_2).write(
-            {"qty_done": 20}
+        picking.move_ids.filtered(lambda x: x.product_id == self.product_2).write(
+            {"quantity": 20, "picked": True}
         )
         picking._action_done()
         picking_find = Picking.name_search(picking.name)
@@ -106,11 +105,11 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.purchase_order.partner_ref = "Partner ref"
         self.purchase_order.button_confirm()
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        picking.move_line_ids.filtered(lambda x: x.product_id == self.product_1).write(
-            {"qty_done": 10}
+        picking.move_ids.filtered(lambda x: x.product_id == self.product_1).write(
+            {"quantity": 10, "picked": True}
         )
-        picking.move_line_ids.filtered(lambda x: x.product_id == self.product_2).write(
-            {"qty_done": 20}
+        picking.move_ids.filtered(lambda x: x.product_id == self.product_2).write(
+            {"quantity": 20, "picked": True}
         )
         picking._action_done()
         # search by partner ref
@@ -139,19 +138,15 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         """
         self.purchase_order.button_confirm()
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_1 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_1
-        )
-        move_line_2 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_2
-        )
-        move_line_1.write({"qty_done": 10})
-        move_line_2.write({"qty_done": 20})
+        move_1 = picking.move_ids.filtered(lambda x: x.product_id == self.product_1)
+        move_2 = picking.move_ids.filtered(lambda x: x.product_id == self.product_2)
+        move_1.write({"quantity": 10, "picked": True})
+        move_2.write({"quantity": 20, "picked": True})
         picking._action_done()
         self.assertEqual(picking.state, "done")
         self.assertEqual(picking.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 20)
+        self.assertEqual(move_1.qty_received_to_invoice, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 20)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 20)
         move_form = Form(
@@ -172,17 +167,17 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(invoice_line1.price_unit, 100)
         self.assertEqual(invoice_line2.quantity, 20)
         self.assertEqual(invoice_line2.price_unit, 200)
-        self.assertEqual(invoice_line1.stock_move_invoiced_id, move_line_1.move_id)
-        self.assertEqual(invoice_line2.stock_move_invoiced_id, move_line_2.move_id)
+        self.assertEqual(invoice_line1.stock_move_invoiced_id, move_1)
+        self.assertEqual(invoice_line2.stock_move_invoiced_id, move_2)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_1.qty_invoiced, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_2.qty_invoiced, 20)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 20)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 0)
+        self.assertEqual(move_2.qty_received_invoiced, 20)
 
     def test_invoice_two_picking_two_invoice(self):
         """
@@ -193,14 +188,12 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         """
         self.purchase_order.button_confirm()
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_1 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_1
-        )
-        move_line_1.write({"qty_done": 10})
+        move_1 = picking.move_ids.filtered(lambda x: x.product_id == self.product_1)
+        move_1.write({"quantity": 10, "picked": True})
         picking._action_done()
         self.assertEqual(picking.state, "done")
         self.assertEqual(picking.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 10)
+        self.assertEqual(move_1.qty_received_to_invoice, 10)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 0)  # no received yet
         move_form = Form(
@@ -220,20 +213,18 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(self.purchase_line_2.qty_invoiced, 0)
         self.assertEqual(len(self.purchase_order.invoice_ids), 1)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 10)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 10)
         # process the second picking with a new invoice
         picking2 = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_2 = picking2.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_2
-        )
-        move_line_2.write({"qty_done": 20})
+        move_2 = picking2.move_ids.filtered(lambda x: x.product_id == self.product_2)
+        move_2.write({"quantity": 20, "picked": True})
         picking2._action_done()
         self.assertEqual(picking2.state, "done")
         self.assertEqual(picking2.received_invoiced_status, "to invoice")
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 20)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 20)
+        self.assertEqual(move_2.qty_received_to_invoice, 20)
         move_form = Form(
             self.env["account.move"].with_context(default_move_type="in_invoice")
         )
@@ -251,8 +242,8 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(self.purchase_line_2.qty_invoiced, 20)
         self.assertEqual(len(self.purchase_order.invoice_ids), 2)
         self.assertEqual(picking2.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 20)
+        self.assertEqual(move_2.qty_received_to_invoice, 0)
+        self.assertEqual(move_2.qty_received_invoiced, 20)
 
     def test_invoice_two_picking_one_invoice(self):
         """
@@ -263,26 +254,22 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.purchase_order.button_confirm()
         # process the first picking
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_1 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_1
-        )
-        move_line_1.write({"qty_done": 10})
+        move_1 = picking.move_ids.filtered(lambda x: x.product_id == self.product_1)
+        move_1.write({"quantity": 10, "picked": True})
         picking._action_done()
         self.assertEqual(picking.state, "done")
         self.assertEqual(picking.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 10)
+        self.assertEqual(move_1.qty_received_to_invoice, 10)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 0)  # no received yet
         # process the second picking
         picking2 = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_2 = picking2.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_2
-        )
-        move_line_2.write({"qty_done": 20})
+        move_2 = picking2.move_ids.filtered(lambda x: x.product_id == self.product_2)
+        move_2.write({"quantity": 20, "picked": True})
         picking2._action_done()
         self.assertEqual(picking2.state, "done")
         self.assertEqual(picking2.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 20)
+        self.assertEqual(move_2.qty_received_to_invoice, 20)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 20)
         # create the invoice
@@ -304,10 +291,10 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(len(self.purchase_order.invoice_ids), 1)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
         self.assertEqual(picking2.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 20)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 0)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 20)
+        self.assertEqual(move_2.qty_received_invoiced, 0)
         # fill the second picking in the same invoice
         move_form = Form(invoice)
         move_form.autocomplete_purchase_picking_id = picking2
@@ -322,11 +309,11 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(invoice_line1.product_id, self.product_1)
         self.assertEqual(invoice_line1.quantity, 10)
         self.assertEqual(invoice_line1.price_unit, 100)
-        self.assertEqual(invoice_line1.stock_move_invoiced_id, move_line_1.move_id)
+        self.assertEqual(invoice_line1.stock_move_invoiced_id, move_1)
         self.assertEqual(invoice_line2.product_id, self.product_2)
         self.assertEqual(invoice_line2.quantity, 20)
         self.assertEqual(invoice_line2.price_unit, 200)
-        self.assertEqual(invoice_line2.stock_move_invoiced_id, move_line_2.move_id)
+        self.assertEqual(invoice_line2.stock_move_invoiced_id, move_2)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_1.qty_invoiced, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 0)
@@ -334,10 +321,10 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.assertEqual(len(self.purchase_order.invoice_ids), 1)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
         self.assertEqual(picking2.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 20)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 0)
+        self.assertEqual(move_2.qty_received_invoiced, 20)
 
     def test_invoice_two_picking_one_invoice_partial(self):
         """
@@ -351,19 +338,15 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         self.purchase_order.button_confirm()
         # process the first picking
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_1 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_1
-        )
-        move_line_2 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_2
-        )
-        move_line_1.write({"qty_done": 6})
-        move_line_2.write({"qty_done": 15})
+        move_1 = picking.move_ids.filtered(lambda x: x.product_id == self.product_1)
+        move_2 = picking.move_ids.filtered(lambda x: x.product_id == self.product_2)
+        move_1.write({"quantity": 6, "picked": True})
+        move_2.write({"quantity": 15, "picked": True})
         picking._action_done()
         self.assertEqual(picking.state, "done")
         self.assertEqual(picking.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 6)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 15)
+        self.assertEqual(move_1.qty_received_to_invoice, 6)
+        self.assertEqual(move_2.qty_received_to_invoice, 15)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 6)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 15)
         # process the second picking
@@ -374,8 +357,8 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         move_line_4 = picking2.move_line_ids.filtered(
             lambda x: x.product_id == self.product_2
         )
-        move_line_3.write({"qty_done": 4})
-        move_line_4.write({"qty_done": 5})
+        move_line_3.write({"quantity": 4, "picked": True})
+        move_line_4.write({"quantity": 5, "picked": True})
         picking2._action_done()
         self.assertEqual(picking2.state, "done")
         self.assertEqual(picking2.received_invoiced_status, "to invoice")
@@ -402,20 +385,20 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         )
         self.assertEqual(invoice_line_1.quantity, 6)
         self.assertEqual(invoice_line_1.price_unit, 100)
-        self.assertEqual(invoice_line_1.stock_move_invoiced_id, move_line_1.move_id)
+        self.assertEqual(invoice_line_1.stock_move_invoiced_id, move_1)
         self.assertEqual(invoice_line_2.quantity, 15)
         self.assertEqual(invoice_line_2.price_unit, 200)
-        self.assertEqual(invoice_line_2.stock_move_invoiced_id, move_line_2.move_id)
+        self.assertEqual(invoice_line_2.stock_move_invoiced_id, move_2)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 4)
         self.assertEqual(self.purchase_line_1.qty_invoiced, 6)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 5)
         self.assertEqual(self.purchase_line_2.qty_invoiced, 15)
         self.assertEqual(len(self.purchase_order.invoice_ids), 1)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 6)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 15)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 6)
+        self.assertEqual(move_2.qty_received_to_invoice, 0)
+        self.assertEqual(move_2.qty_received_invoiced, 15)
         # fill the second picking in the same invoice
         move_form = Form(invoice)
         move_form.autocomplete_purchase_picking_id = picking2
@@ -461,19 +444,15 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         )
         self.purchase_order.button_confirm()
         picking = self.purchase_order.picking_ids.filtered(lambda p: p.state != "done")
-        move_line_1 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_1
-        )
-        move_line_2 = picking.move_line_ids.filtered(
-            lambda x: x.product_id == self.product_2
-        )
-        move_line_1.write({"qty_done": 10})
-        move_line_2.write({"qty_done": 24})
+        move_1 = picking.move_ids.filtered(lambda x: x.product_id == self.product_1)
+        move_2 = picking.move_ids.filtered(lambda x: x.product_id == self.product_2)
+        move_1.write({"quantity": 10, "picked": True})
+        move_2.write({"quantity": 24, "picked": True})
         picking._action_done()
         self.assertEqual(picking.state, "done")
         self.assertEqual(picking.received_invoiced_status, "to invoice")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 24)
+        self.assertEqual(move_1.qty_received_to_invoice, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 24)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 2)  # 2 dozen = 24 units
         # create the invoice
@@ -495,17 +474,17 @@ class TestGeneralLedgerReport(AccountTestInvoicingCommon):
         )
         self.assertEqual(invoice_line_1.quantity, 10)
         self.assertEqual(invoice_line_1.price_unit, 100)
-        self.assertEqual(invoice_line_1.stock_move_invoiced_id, move_line_1.move_id)
+        self.assertEqual(invoice_line_1.stock_move_invoiced_id, move_1)
         self.assertEqual(invoice_line_2.quantity, 2)  # 2 dozen = 24 units
         self.assertEqual(invoice_line_2.price_unit, 200)
-        self.assertEqual(invoice_line_2.stock_move_invoiced_id, move_line_2.move_id)
+        self.assertEqual(invoice_line_2.stock_move_invoiced_id, move_2)
         self.assertEqual(self.purchase_line_1.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_1.qty_invoiced, 10)
         self.assertEqual(self.purchase_line_2.qty_to_invoice, 0)
         self.assertEqual(self.purchase_line_2.qty_invoiced, 2)
         self.assertEqual(len(self.purchase_order.invoice_ids), 1)
         self.assertEqual(picking.received_invoiced_status, "invoiced")
-        self.assertEqual(move_line_1.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_1.move_id.qty_received_invoiced, 10)
-        self.assertEqual(move_line_2.move_id.qty_received_to_invoice, 0)
-        self.assertEqual(move_line_2.move_id.qty_received_invoiced, 24)
+        self.assertEqual(move_1.qty_received_to_invoice, 0)
+        self.assertEqual(move_1.qty_received_invoiced, 10)
+        self.assertEqual(move_2.qty_received_to_invoice, 0)
+        self.assertEqual(move_2.qty_received_invoiced, 24)
