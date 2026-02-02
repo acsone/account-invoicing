@@ -23,7 +23,7 @@
                     class="float-start"
                     alt="Logo"
                 />
-                <div t-if="o.partner_id" t-attf-class="'col-5 ' + {{image_offset}}">
+                <div t-if="o.partner_id" t-attf-class="col-5 {{image_offset}}">
                     <span
                         t-field="o.partner_id"
                         t-options='{"widget": "contact", "fields": ["name", "address"], "no_marker": True}'
@@ -44,10 +44,16 @@
             expr="//div[contains(@t-attf-class,'footer')]/div/ul/div"
             position="replace"
         >
-            <div t-field="o.partner_id.self_invoice_report_footer" />
             <span t-if="o.state != 'posted'">
                 <strong>This Self-bill is not valid</strong>
             </span>
+            <t t-else="">
+                <div
+                    t-if="o.partner_id.self_invoice_report_footer"
+                    t-field="o.partner_id.self_invoice_report_footer"
+                />
+                <div t-else="" t-field="company.report_footer" />
+            </t>
         </xpath>
     </template>
 
@@ -98,21 +104,22 @@
         >
             <t t-if="o.set_self_invoice">
                 <t t-set="address">
-                    <address
-                        class="mb-0"
-                        t-field="o.company_id.partner_id"
-                        t-options='{"widget": "contact", "fields": ["name", "address"], "no_marker": True}'
+                    <t
+                        t-call="account_invoice_supplier_self_invoice.self_invoice_address_block"
                     />
-                    <div t-if="o.company_id.partner_id.vat">
-                        <t
-                            t-if="o.company_id.account_fiscal_country_id.vat_label"
-                            t-esc="o.company_id.account_fiscal_country_id.vat_label"
-                            id="inv_tax_id_label"
-                        />
-                        <t t-else="">Tax ID</t>: <span
-                            t-field="o.company_id.partner_id.vat"
-                        />
-                    </div>
+                </t>
+            </t>
+        </xpath>
+
+        <xpath
+            expr="//t/div[@name='address_not_same_as_shipping']/t[@t-set='address']"
+            position="after"
+        >
+            <t t-if="o.set_self_invoice">
+                <t t-set="address">
+                    <t
+                        t-call="account_invoice_supplier_self_invoice.self_invoice_address_block"
+                    />
                 </t>
             </t>
         </xpath>
@@ -159,6 +166,24 @@
                 name="t-if"
             >o.invoice_date_due and (o.move_type == 'out_invoice' or (o.move_type == 'in_invoice' and o.set_self_invoice)) and o.state == 'posted'</attribute>
         </xpath>
+    </template>
+
+    <template id="self_invoice_address_block">
+        <address
+            class="mb-0"
+            t-field="o.company_id.partner_id"
+            t-options='{"widget": "contact", "fields": ["name", "address"], "no_marker": True}'
+        />
+        <div t-if="o.company_id.partner_id.vat">
+            <t
+                t-if="o.company_id.account_fiscal_country_id.vat_label"
+                t-esc="o.company_id.account_fiscal_country_id.vat_label"
+                id="inv_tax_id_label"
+            />
+                        <t t-else="">Tax ID</t>: <span
+                t-field="o.company_id.partner_id.vat"
+            />
+        </div>
     </template>
 
     <!-- Report: Invoices with payments -->
