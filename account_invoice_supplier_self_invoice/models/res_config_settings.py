@@ -15,3 +15,9 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.self_invoice_auto_ref",
         readonly=False,
     )
+
+    self_invoice_report_footer_extra_infos = fields.Text(
+        string="Self Billing Extra Infos",
+        related="company_id.self_invoice_report_footer_extra_infos",
+        readonly=False,
+    )
