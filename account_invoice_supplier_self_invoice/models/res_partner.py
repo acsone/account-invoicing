@@ -2,7 +2,7 @@
 # Copyright 2022 - Moduon
 # License AGPL-3.0 or later (https://www.gnuorg/licenses/agpl.html).
 
-from odoo import _, api, exceptions, fields, models
+from odoo import _, exceptions, fields, models, api
 
 
 class ResPartner(models.Model):
@@ -73,10 +73,6 @@ class ResPartner(models.Model):
                 partner.self_invoice and partner.self_invoice_auto_ref
             )
 
-    @api.model
-    def _default_self_invoice_report_footer(self):
-        return _("Invoiced by the recipent")
-
     def _get_self_invoice_number(self, invoice):
         self.ensure_one()
         if not self.self_invoice_auto_ref:
@@ -146,10 +142,3 @@ class ResPartner(models.Model):
                 partner._set_self_invoice()
             if not partner.self_invoice_refund_sequence_id:
                 partner._set_self_invoice(refund=True)
-
-    @api.onchange("self_invoice")
-    def onchange_self_invoice(self):
-        if self.self_invoice and not self.self_invoice_report_footer:
-            self.self_invoice_report_footer = self.with_context(
-                lang=self.lang or self.env.user.lang
-            )._default_self_invoice_report_footer()

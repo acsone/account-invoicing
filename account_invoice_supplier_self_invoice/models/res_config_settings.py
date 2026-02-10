@@ -13,5 +13,10 @@ class ResConfigSettings(models.TransientModel):
     self_invoice_auto_ref = fields.Boolean(
         string="Generate reference with specific sequence for self-billing",
         related="company_id.self_invoice_auto_ref",
+    )
+
+    self_invoice_extra_infos = fields.Text(
+        string="Self Billing Extra Infos",
+        related="company_id.self_invoice_extra_infos",
         readonly=False,
     )
