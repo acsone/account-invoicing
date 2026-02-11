@@ -91,8 +91,6 @@
             <span
                 t-if="o.set_self_invoice and o.move_type == 'in_invoice'"
             >Self-billed Invoice</span>
-            <span t-if="not o.set_self_invoice and o.name != '/'" t-field="o.name" />
-            <span t-if="o.set_self_invoice and o.ref != '/'" t-field="o.ref" />
         </xpath>
         <!-- Invoice date text -->
         <xpath
